@@ -16,26 +16,20 @@
 
 package com.example.dex;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-
-import com.example.dex.R;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import dalvik.system.DexClassLoader;
 
@@ -102,7 +96,29 @@ public class MainActivity extends Activity {
             }
         });
     }
+
     
+    private class PrepareDexTask extends AsyncTask<File, Void, Boolean> {
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            if (mProgressDialog != null) mProgressDialog.cancel();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+            if (mProgressDialog != null) mProgressDialog.cancel();
+        }
+
+        @Override
+        protected Boolean doInBackground(File... dexInternalStoragePaths) {
+            prepareDex(dexInternalStoragePaths[0]);
+            return null;
+        }
+    }
+
     // File I/O code to copy the secondary dex file from asset resource to internal storage.
     private boolean prepareDex(File dexInternalStoragePath) {
         BufferedInputStream bis = null;
@@ -110,13 +126,11 @@ public class MainActivity extends Activity {
 
         try {
 
-            //bis = new BufferedInputStream(getAssets().open(SECONDARY_DEX_NAME));
-            Log.i("customClassLoader", "test");
-            File extDir = Environment.getExternalStorageDirectory();
-            Log.i("customClassLoader", extDir.getAbsolutePath());
-            File dexExternalStorage = new File(extDir, SECONDARY_DEX_NAME);
-            Log.i("customClassLoader", dexExternalStorage.getAbsolutePath());
-            bis = new BufferedInputStream(new FileInputStream(dexExternalStorage));
+            //copy dex file from assets to internal storage
+            bis = new BufferedInputStream(getAssets().open(SECONDARY_DEX_NAME));
+//            File extDir = Environment.getExternalStorageDirectory();
+//            File dexExternalStorage = new File(extDir, SECONDARY_DEX_NAME);
+//            bis = new BufferedInputStream(new FileInputStream(dexExternalStorage));
             dexWriter = new BufferedOutputStream(new FileOutputStream(dexInternalStoragePath));
             byte[] buf = new byte[BUF_SIZE];
             int len;
@@ -142,27 +156,6 @@ public class MainActivity extends Activity {
                 }
             }
             return false;
-        }
-    }
-    
-    private class PrepareDexTask extends AsyncTask<File, Void, Boolean> {
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            if (mProgressDialog != null) mProgressDialog.cancel();
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-            if (mProgressDialog != null) mProgressDialog.cancel();
-        }
-
-        @Override
-        protected Boolean doInBackground(File... dexInternalStoragePaths) {
-            prepareDex(dexInternalStoragePaths[0]);
-            return null;
         }
     }
 }

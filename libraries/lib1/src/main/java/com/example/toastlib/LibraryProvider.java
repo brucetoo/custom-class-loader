@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.example.dex.LibraryInterface;
 
 public class LibraryProvider implements LibraryInterface {
+
     public void showAwesomeToast(Context context, String message) {
         if (context == null) {
             return;

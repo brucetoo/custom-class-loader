@@ -29,21 +29,25 @@ android {
     }
 }
 // Add the main project as a dependency for our library
+// for let the library dex file separate from the android platform
+// by using interface
 dependencies {
     compile project(':app')
 }
-// Define some tasks which are used in the build process
-task copyClasses(type: Copy) { // Copy the assembled *.class files for only the current namespace into a new directory
+
+
+task copyClasses(type: Copy) {
+    // Copy the assembled *.class files for only the current namespace into a new directory
     // get directory for current namespace
-    def namespacePath = PLUGIN_NAMESPACE.replaceAll("\\.","/")
+    def namespacePath = PLUGIN_NAMESPACE.replaceAll("\\.", "/")
     // set source and destination directories
     from "build/intermediates/classes/release/${namespacePath}/"
     into "build/intermediates/dex/${namespacePath}/"
 
     // exclude classes which don't have a corresponding entry in the source directory
-    def remExt = { name -> name.lastIndexOf('.').with {it != -1 ? name[0..<it] : name} }
-    eachFile {details ->
-        def thisFile = new File("${projectDir}/src/main/java/${namespacePath}/", remExt(details.name)+".java")
+    def remExt = { name -> name.lastIndexOf('.').with { it != -1 ? name[0..<it] : name } }
+    eachFile { details ->
+        def thisFile = new File("${projectDir}/src/main/java/${namespacePath}/", remExt(details.name) + ".java")
         if (!(thisFile.exists())) {
             details.exclude()
         }
@@ -53,19 +57,22 @@ task copyClasses(type: Copy) { // Copy the assembled *.class files for only the 
 task assembleExternalJar << {
     // Get the location of the Android SDK
     ext.androidSdkDir = System.env.ANDROID_HOME
-    if(androidSdkDir == null) {
+    if (androidSdkDir == null) {
         Properties localProps = new Properties()
-        localProps.load(new FileInputStream(file('local.properties')))
+        //get file local.properties
+        localProps.load(new FileInputStream(file('../../local.properties')))
         ext.androidSdkDir = localProps['sdk.dir']
     }
+
     // Make sure no existing jar file exists as this will cause dx to fail
     new File("${buildDir}/intermediates/dex/${PLUGIN_NAMESPACE}.jar").delete();
+
     // Use command line dx utility to convert *.class files into classes.dex inside jar archive
-    String cmdExt = Os.isFamily(Os.FAMILY_WINDOWS) ? '.bat' : ''
+    String cmdExt = Os.isFamily(Os.FAMILY_WINDOWS) ? '.bat' : ''//windows or linux?
     exec {
         commandLine "${androidSdkDir}/build-tools/${BUILD_TOOLS_VERSION}/dx${cmdExt}", '--dex',
-                    "--output=${buildDir}/intermediates/dex/${PLUGIN_NAMESPACE}.jar",
-                    "${buildDir}/intermediates/dex/"
+                "--output=${buildDir}/intermediates/dex/${PLUGIN_NAMESPACE}.jar",
+                "${buildDir}/intermediates/dex/"
     }
     copyJarToOutputs.execute()
 }
@@ -76,7 +83,6 @@ task copyJarToOutputs(type: Copy) {
     into 'build/outputs/'
     include '*.jar'
 }
-
 
 // Set the dependencies of the build tasks so that assembleExternalJar does a complete build
 copyClasses.dependsOn(assemble)

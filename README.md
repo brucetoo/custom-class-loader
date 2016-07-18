@@ -8,13 +8,24 @@ extensibility. In my particular case, I'm trying to make a [plugin framework for
 Therefore the main focus of this version of the project is on building the secondary jar file in a clean and modular manner,
 which makes it easy to update the main project without having to update the plugins. The main apk is in the app module, and the library which shows the toast is in the libraries/lib1 module with its own namespace `com.example.toastlib`
 
-You can compile the .jar plugin file for the library using the `assembleExternalJar` task -- e.g. from the command line:
 
-`gradlew assembleExternalJar`
 
-which will generate the file `/libraries/lib1/build/outputs/com.example.toastlib.jar` which you can then copy to the sdcard on your device for the main app to import. 
+##STEP
 
-To compile the main app it's currently necessary to make the following two changes to the build configuration:
+  1.Define interface in `app` main module,and implement them in `libraries:lib1` module wait to generate dex file
+  
+  2.Add `':libraries:lib1'` in `settings.gradle` let libraries become a module
+  
+  3.Change `app.gradle`  from `apply plugin: 'com.android.application'` to `apply plugin: 'com.android.library'`
+  to be dependency by `libraries:lib1` (line `35`)
+  
+  4.Config `local.properties` in `libraries:lib1.gradle` in line `63` to get android SDK
+ 
+  5.Run in command line `gradlew assembleExternalJar` to get dex file,file name can be configured in `gradle.properties`
+  by `PLUGIN_NAMESPACE` ,then dex file inside jar archive can be found in `/libraries/lib1/build/outputs/PLUGIN_NAMESPACE.jar`
+  
+  6.Copy `PLUGIN_NAMESPACE.jar` into `app' assets file`
+  
+  7.Change `app.gradle`  from `apply plugin: 'com.android.library'` to `apply plugin: 'com.android.application'` 
+  and remove `':libraries:lib1'` from settings.gradle
 
- * change the first line of '/app/build.gradle' to `apply plugin: 'com.android.application'`
- * remove `':libraries:lib1'` from settings.gradle
