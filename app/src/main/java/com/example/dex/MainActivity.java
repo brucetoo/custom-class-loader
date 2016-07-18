@@ -128,6 +128,8 @@ public class MainActivity extends Activity {
 
             //copy dex file from assets to internal storage
             bis = new BufferedInputStream(getAssets().open(SECONDARY_DEX_NAME));
+
+            //get dex FileOutputStream from exactly internal storage
 //            File extDir = Environment.getExternalStorageDirectory();
 //            File dexExternalStorage = new File(extDir, SECONDARY_DEX_NAME);
 //            bis = new BufferedInputStream(new FileInputStream(dexExternalStorage));
